@@ -1,27 +1,47 @@
-# Skills Interview Submission
+# Smile Interview Submission
 
-## Deployment Instructions
+## Overview 
 
-The App packaged as a docker image and can be deployed on kubernetes. The basic manifests required to deploy the application to a kubernetes cluster are provided in the `kubernetes` folder
+The App packaged as a docker image and can be deployed on kubernetes. The basic manifests required to deploy the application to a kubernetes cluster are provided in the `k8s` folder
 
 ```
- └──kubernetes
-    └── manifests       # contains files to deploy the app to the k8s cluster as a deployment with 2 replicas
+    └── k8s   
         ├── deployment.yaml
-        ├── service.yaml
-        └── service_account.yaml
+        ├── svc.yaml
+        ├── hpa.yaml
+        ├── namespace.yaml
+        └── sa.yaml
 ```
-### Application Resources deployed
+### Kubernetes Resources deployed
 1. `ServiceAccount`
-2. `Deployment`. Deployment manifest with 3 replicas
-3. `Service`. Service to expose the application
+2. `Deployment`
+3. `Service`
+4. `HorizontalPodAutoscaler`
+5. `Namespace`
+
+### AWS Resources deployed
+1. `VPC|Subnets|NatGateways`
+2. `EKS Cluster`
+3. `ECR Repository`
 
 
+## Production
 
-## Production Deployment 
-###  1. <u> Creating  AWS Infrastructure </u>
+### Deployment Steps
 
 *NOTE*: Terraform state is stored locally !! 
+
+ ##### Requirements
+  * `Docker` with [Compose](https://docs.docker.com/compose/)
+  * `Terraform`
+  * `AWS cli`
+  * `yq`
+
+Tip: Use helper scripts to run all deployment steps with 1 command. You must first set environment variables in step 1.
+```sh
+ make k8s-deploy
+```
+
 
 
  1. Set up AWS credentials. You can read how [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-authentication.html)
@@ -30,7 +50,8 @@ The App packaged as a docker image and can be deployed on kubernetes. The basic 
 
     ```
     export AWS_SECRET_ACCESS_KEY=<Actual Secret Access Key>
-    export AWS_ACCESS_KEY_ID=<Actual Access Key>  
+    export AWS_ACCESS_KEY_ID=<Actual Access Key> 
+    export TF_VAR_AWS_REGION=<Actual AWS Region> 
     ```
 
  2. Change directory to the `terraform` folder
@@ -39,7 +60,7 @@ The App packaged as a docker image and can be deployed on kubernetes. The basic 
     cd terraform
     ```
  
- 3. Init Terraform configuration by using the command below
+ 3. Initialize Terraform configuration by using the command below
  
     ```sh
     terraform init 
@@ -69,7 +90,7 @@ The App packaged as a docker image and can be deployed on kubernetes. The basic 
   
  6. Set the IMAGE environment variable 
     ```sh
-    export IMAGE_REPO=$(terraform output  -raw container-registry)
+    export IMAGE_REPO=$(terraform output  -raw container_repository)
     export IMAGE_REGISTRY=${IMAGE_REPO%/*}
     export IMAGE_TAG=0.0.1
     export IMAGE=$IMAGE_REPO:$IMAGE_TAG
@@ -88,7 +109,7 @@ The App packaged as a docker image and can be deployed on kubernetes. The basic 
     docker tag simple-app:$IMAGE_TAG $IMAGE
 
     # login to image registry 
-    aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin $IMAGE_REGISTRY
+    aws ecr get-login-password --region $TF_VAR_AWS_REGION | docker login --username AWS --password-stdin $IMAGE_REGISTRY
 
 
     # push image to registry
@@ -99,11 +120,11 @@ The App packaged as a docker image and can be deployed on kubernetes. The basic 
  8. Deploy kubernetes manifests
     ```sh
 
-    # set image and tag in mainifest (ran with yq=4.40.5)
+    # set image and tag in mainifest
     yq e -i '.spec.template.spec.containers[0].image=env(IMAGE)' k8s/deployment.yaml
 
     # set kube context
-    aws eks update-kubeconfig --region us-east-2 --name main --alias main 
+    aws eks update-kubeconfig --region $TF_VAR_AWS_REGION --name main --alias main 
 
     # apply manifests
     kubectl apply -f k8s/      
@@ -111,33 +132,49 @@ The App packaged as a docker image and can be deployed on kubernetes. The basic 
     ```
 
 
+### Cleanup Steps
 
-Cleanup
+Tip: Use helper scripts to run all cleanup steps with 1 command.
+```sh
+ make k8s-clean
+```
 
-```
-kubectl delete -f k8s/ 
-aws ecr delete-repository --repository-name simple-app --force --region us-east-2
-terraform destroy
-```
-## Local Deployment
+
+  Follow the steps below to cleanup the created resources
+
+  ```sh
+  # delete kubernetes resources
+  kubectl delete -f k8s/ 
+  
+  # Force delete ECR Repository using aws cli. (Terraform cannot force delete because the repository is not empty)
+  aws ecr delete-repository --repository-name simple-app --force --region $TF_VAR_AWS_REGION
+
+  # Destroy terraform resources
+  cd terraform
+
+  terraform destroy
+  ```
+
+    
+## Local Deployments
 ###  1. <u> Deploying as a local docker container </u>
 
  ##### Requirements
-* Install `Docker`
-* Free Port (8080)
+* `Docker` with [Compose](https://docs.docker.com/compose/)
+*  Port (8080)
 
 
 To deploy as a local docker container you can use the helper script provided by running the below command in the project root directory
 
 ```
- make local-docker-run
+ make run
  ```
 
 The script will do the following: 
 
 1. Builds the docker image with tag `simple-app:latest`
 2. Runs a local container with the image
-3. Exposes the container for local network traffic
+3. Exposes the container for local network traffic on port `8080`
 
 
 Access the application on [http://localhost:8080](http://localhost:8080)
@@ -145,39 +182,28 @@ Access the application on [http://localhost:8080](http://localhost:8080)
 You can clean up the local docker container by running 
 
 ```
-make local-docker-clean
+make clean
 ```
 
-### 2. <u> Deploying to local kubernetes `KIND` cluster </u>
+###  1. <u> Running locally in debug mode </u>
+
  ##### Requirements
-* Install `Kind` 
-* Free Port (8080)
+* `Python3`
+*  Port (8080)
 
-To deploy to a local `kind` cluster you can use the helper script provided by running the below command in the project root directory
 
-```
- make local-k8s-run
+To run the app locally in deub mode you can use the helper script provided by running the below command in the project root directory
+
+```sh
+ make debug
  ```
 
 The script will do the following: 
 
-1. Builds the docker image with tag `simple-app:latest`
-2. Creates a temporary `Kind` cluster
-3. Loads the built image into the `Kind` cluster
-4. Applies the kubernetes manifests into the `kind` cluster
-
-
-Expose the application from the local kind cluster by running (port-forwads to local machine). 
-```
-make local-k8s-expose
-```
+1. Runs the python app locally on port 8080
 
 Access the application on [http://localhost:8080](http://localhost:8080)
 
-You can clean up the local kind by running 
-```
-make local-k8s-clean
-```
 
 ### API
 
@@ -189,7 +215,7 @@ The application endpoints:
   * Example use:
 
     ```bash
-    curl 127.0.0.1:8080/api/files/1234
+    curl 127.0.0.1:8080
     ```
   * Example response:
 

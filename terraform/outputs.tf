@@ -1,3 +1,3 @@
-output "container-registry" {
+output "container_repository" {
   value = module.ecr.repository_url
 }

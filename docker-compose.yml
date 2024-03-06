@@ -3,7 +3,7 @@ version: '3'
 services:
   app:
     build: .
-    image: app:latest
+    image: simple-app:latest
     ports:
       - "8080:8080"
 
