@@ -1,8 +1,40 @@
 # Smile Interview Submission
 
-## Overview 
 
-The App packaged as a docker image and can be deployed on kubernetes. The basic manifests required to deploy the application to a kubernetes cluster are provided in the `k8s` folder
+### API SPECIFICATION
+
+The application endpoints:
+
+* `/`
+  * Accepts GET requests.
+  * Returns a json body response
+  * Example use:
+
+    ```bash
+    curl 127.0.0.1:8080
+    ```
+  * Example response:
+
+    ```json
+    {"message": "Hello Smile"}
+    ```
+
+
+    
+* `/healthy`
+  * Accepts a GET request
+  * Returns 200 if the application is ready.
+  * Returns 500 if the application is not ready
+  * Example use:
+
+    ```bash
+    curl 127.0.0.1:8080/healthy
+    ```
+
+
+## INFRASTRUCTURE 
+
+The App is packaged as a docker image and can be deployed on kubernetes. The basic manifests required to deploy the application to a kubernetes cluster are provided in the `k8s` folder
 
 ```
     └── k8s   
@@ -12,14 +44,14 @@ The App packaged as a docker image and can be deployed on kubernetes. The basic 
         ├── namespace.yaml
         └── sa.yaml
 ```
-### Kubernetes Resources deployed
+####  Kubernetes Resources deployed
 1. `ServiceAccount`
 2. `Deployment`
 3. `Service`
 4. `HorizontalPodAutoscaler`
 5. `Namespace`
 
-### AWS Resources deployed
+#### AWS Resources deployed
 1. `VPC|Subnets|NatGateways`
 2. `EKS Cluster`
 3. `ECR Repository`
@@ -37,18 +69,23 @@ The App packaged as a docker image and can be deployed on kubernetes. The basic 
   * `AWS cli`
   * `yq`
 
-Tip: Use helper scripts to run all deployment steps with 1 command. You must first set environment variables in step 1.
+**Tip**: Use the helper script to run all deployment steps with 1 command. You must first set environment variables in step 1.
+
+By default the script will use `IMAGE_TAG=1.0.0` , to use a different tag run  `export IMAGE_TAG=<preferred tag>` first.
+
 ```sh
  make k8s-deploy
 ```
 
+
+#### Individual Steps
 
 
  1. Set up AWS credentials. You can read how [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-authentication.html)
 
     Recommended that you use the option of setting environment variables for this demo
 
-    ```
+    ```sh
     export AWS_SECRET_ACCESS_KEY=<Actual Secret Access Key>
     export AWS_ACCESS_KEY_ID=<Actual Access Key> 
     export TF_VAR_aws_region=<Actual AWS Region> 
@@ -92,7 +129,7 @@ Tip: Use helper scripts to run all deployment steps with 1 command. You must fir
     ```sh
     export IMAGE_REPO=$(terraform output  -raw container_repository)
     export IMAGE_REGISTRY=$(echo ${IMAGE_REPO}| cut -d '/' -f1)
-    export IMAGE_TAG=0.0.1
+    export IMAGE_TAG=1.0.0
     export IMAGE=$IMAGE_REPO:$IMAGE_TAG
     ```
 
@@ -134,36 +171,37 @@ Tip: Use helper scripts to run all deployment steps with 1 command. You must fir
 
 ### Cleanup Steps
 
-Tip: Use helper scripts to run all cleanup steps with 1 command.
+Tip: Use helper script to run all cleanup steps with 1 command.
 ```sh
  make k8s-clean
 ```
 
+#### Individual Steps
 
-  Follow the steps below to cleanup the created resources
+1.  Follow the steps below to cleanup the created resources
 
-  ```sh
-  # delete kubernetes resources
-  kubectl delete -f k8s/ 
+    ```sh
+    # delete kubernetes resources
+    kubectl delete -f k8s/ 
+    
+    # Force delete ECR Repository using aws cli. (Terraform cannot force delete because the repository is not empty)
+    aws ecr delete-repository --repository-name simple-app --force --region $TF_VAR_aws_region
+
+    # Destroy terraform resources
+    cd terraform
+
+    terraform destroy
+    ```
+
+ 2.  Confirm that you want to delete the resources
   
-  # Force delete ECR Repository using aws cli. (Terraform cannot force delete because the repository is not empty)
-  aws ecr delete-repository --repository-name simple-app --force --region $TF_VAR_aws_region
+      ```sh
+      Do you really want to destroy all resources?
+      Terraform will destroy all your managed infrastructure, as shown above.
+      There is no undo. Only 'yes' will be accepted to confirm.
 
-  # Destroy terraform resources
-  cd terraform
-
-  terraform destroy
-  ```
-
-  Confirm that you want to delete the resources
-  
-  ```sh
-  Do you really want to destroy all resources?
-  Terraform will destroy all your managed infrastructure, as shown above.
-  There is no undo. Only 'yes' will be accepted to confirm.
-
-  Enter a value: yes
-  ```
+      Enter a value: yes
+      ```
     
 ## Local Deployments
 ###  1. <u> Deploying as a local docker container </u>
@@ -201,7 +239,7 @@ make clean
 *  Port (8080)
 
 
-To run the app locally in deub mode you can use the helper script provided by running the below command in the project root directory
+To run the app locally in debug mode you can use the helper script provided by running the below command in the project root directory
 
 ```sh
  make debug
@@ -213,36 +251,6 @@ The script will do the following:
 
 Access the application on [http://localhost:8080](http://localhost:8080)
 
-
-### API
-
-The application endpoints:
-
-* `/`
-  * Accepts GET requests.
-  * Returns a json body response
-  * Example use:
-
-    ```bash
-    curl 127.0.0.1:8080
-    ```
-  * Example response:
-
-    ```json
-    {"message": "Hello Smile"}
-    ```
-
-
-    
-* `/healthy`
-  * Accepts a GET request
-  * Returns 200 if the application is ready.
-  * Returns 500 if the application is not ready
-  * Example use:
-
-    ```bash
-    curl 127.0.0.1:8080/healthy
-    ```
 
     
 ### Road Map
