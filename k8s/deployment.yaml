@@ -6,7 +6,7 @@ metadata:
   name: simple-app
   namespace: prod
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: simple-app

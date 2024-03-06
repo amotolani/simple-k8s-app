@@ -91,7 +91,7 @@ Tip: Use helper scripts to run all deployment steps with 1 command. You must fir
  6. Set the IMAGE environment variable 
     ```sh
     export IMAGE_REPO=$(terraform output  -raw container_repository)
-    export IMAGE_REGISTRY=${IMAGE_REPO%/*}
+    export IMAGE_REGISTRY=$(echo ${IMAGE_REPO}| cut -d '/' -f1)
     export IMAGE_TAG=0.0.1
     export IMAGE=$IMAGE_REPO:$IMAGE_TAG
     ```
@@ -109,7 +109,7 @@ Tip: Use helper scripts to run all deployment steps with 1 command. You must fir
     docker tag simple-app:$IMAGE_TAG $IMAGE
 
     # login to image registry 
-    aws ecr get-login-password --region $TF_VAR_AWS_REGION | docker login --username AWS --password-stdin $IMAGE_REGISTRY
+    aws ecr get-login-password --region $TF_VAR_aws_region | docker login --username AWS --password-stdin $IMAGE_REGISTRY
 
 
     # push image to registry
@@ -124,7 +124,7 @@ Tip: Use helper scripts to run all deployment steps with 1 command. You must fir
     yq e -i '.spec.template.spec.containers[0].image=env(IMAGE)' k8s/deployment.yaml
 
     # set kube context
-    aws eks update-kubeconfig --region $TF_VAR_AWS_REGION --name main --alias main 
+    aws eks update-kubeconfig --region $TF_VAR_aws_region --name main --alias main 
 
     # apply manifests
     kubectl apply -f k8s/      
@@ -147,7 +147,7 @@ Tip: Use helper scripts to run all cleanup steps with 1 command.
   kubectl delete -f k8s/ 
   
   # Force delete ECR Repository using aws cli. (Terraform cannot force delete because the repository is not empty)
-  aws ecr delete-repository --repository-name simple-app --force --region $TF_VAR_AWS_REGION
+  aws ecr delete-repository --repository-name simple-app --force --region $TF_VAR_aws_region
 
   # Destroy terraform resources
   cd terraform
@@ -248,5 +248,9 @@ The application endpoints:
 ### Road Map
  Some features that should be implemented in the future
   
- - Add ability to emit application metrics. These metrics should be available on a dedicated `/metrics` endpoint
- - Add more unit and functional tests
+ - Add Node Autoscaling Capability to the cluster (Karpenter, Cluster Autoscaler)
+ - Implement a Service Mesh
+ - Observability Dashboard for monitoring resources in the cluster
+ - Policy As Code Tooling (OPA, Kyverno)
+ - Implement Topology Spread Strategy for Nodes across Multiple AZs
+ - Deploy an Ingress Controller (Possible use Mesh Gateway)
