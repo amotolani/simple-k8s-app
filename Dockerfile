@@ -1,6 +1,10 @@
 FROM python:3.9-alpine3.18
 
-RUN addgroup smile && adduser -G smile -S smile
+ARG UNAME=smile
+ARG UID=2001
+ARG GID=2001
+
+RUN addgroup ${UNAME} -g ${GID} && adduser -G ${UNAME} -u ${UID} ${UNAME} -D
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -19,6 +23,6 @@ RUN chown -R smile:smile $APP_HOME
 
 RUN find / -xdev -perm /6000 -type f -exec chmod a-s {} \; || true
 
-USER smile
+USER ${UID}:${GID}
 
 CMD ["gunicorn","-b","0.0.0.0:8080","app:app"]

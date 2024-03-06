@@ -42,11 +42,12 @@ spec:
               weight: 99
       serviceAccountName: simple-app
       securityContext:
+        runAsNonRoot: true
         seccompProfile:
           type: RuntimeDefault
       containers:
         - name: simple-app
-          image: 312805346582.dkr.ecr.us-east-2.amazonaws.com/simple-app:0.0.1
+          image: ""
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
@@ -62,8 +63,7 @@ spec:
             successThreshold: 1
             timeoutSeconds: 1
           # setting the readiness probe to also call the /healthy path
-          # this will make the pod not ready if there are any issues with
-          # the database or memcached. This is checked throughout the lifetime
+          # this will make the pod not ready if there are any issues. This is checked throughout the lifetime
           # of the pods
           readinessProbe:
             httpGet:
@@ -81,3 +81,7 @@ spec:
             requests:
               cpu: 60m
               memory: 150Mi
+          securityContext:
+            capabilities:
+              drop: ["ALL"] # 
+            allowPrivilegeEscalation: false

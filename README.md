@@ -51,7 +51,7 @@ Tip: Use helper scripts to run all deployment steps with 1 command. You must fir
     ```
     export AWS_SECRET_ACCESS_KEY=<Actual Secret Access Key>
     export AWS_ACCESS_KEY_ID=<Actual Access Key> 
-    export TF_VAR_AWS_REGION=<Actual AWS Region> 
+    export TF_VAR_aws_region=<Actual AWS Region> 
     ```
 
  2. Change directory to the `terraform` folder
@@ -155,6 +155,15 @@ Tip: Use helper scripts to run all cleanup steps with 1 command.
   terraform destroy
   ```
 
+  Confirm that you want to delete the resources
+  
+  ```sh
+  Do you really want to destroy all resources?
+  Terraform will destroy all your managed infrastructure, as shown above.
+  There is no undo. Only 'yes' will be accepted to confirm.
+
+  Enter a value: yes
+  ```
     
 ## Local Deployments
 ###  1. <u> Deploying as a local docker container </u>
