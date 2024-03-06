@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: simple-app
+  name: simple-app
+  namespace: prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: simple-app
+      env: prod
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: simple-app
+        env: prod
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - simple-app
+                topologyKey: topology.kubernetes.io/zone
+              weight: 100
+            - podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - simple-app
+                topologyKey: kubernetes.io/hostname
+              weight: 99
+      serviceAccountName: simple-app
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: simple-app
+          image: 312805346582.dkr.ecr.us-east-2.amazonaws.com/simple-app:0.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthy
+              port: http
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 1
+          # setting the readiness probe to also call the /healthy path
+          # this will make the pod not ready if there are any issues with
+          # the database or memcached. This is checked throughout the lifetime
+          # of the pods
+          readinessProbe:
+            httpGet:
+              path: /healthy
+              port: http
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            limits:
+              cpu: 100m
+              memory: 150Mi
+            requests:
+              cpu: 60m
+              memory: 150Mi
