@@ -55,6 +55,7 @@ The App is packaged as a docker image and can be deployed on kubernetes. The bas
 1. `VPC|Subnets|NatGateways`
 2. `EKS Cluster`
 3. `ECR Repository`
+4. `IAM Resources`
 
 
 ## Production
@@ -74,7 +75,7 @@ The App is packaged as a docker image and can be deployed on kubernetes. The bas
 By default the script will use `IMAGE_TAG=1.0.0` , to use a different tag run  `export IMAGE_TAG=<preferred tag>` first.
 
 ```sh
- make k8s-deploy
+ ./helper.sh k8s-deploy
 ```
 
 
@@ -173,7 +174,7 @@ By default the script will use `IMAGE_TAG=1.0.0` , to use a different tag run  `
 
 Tip: Use helper script to run all cleanup steps with 1 command.
 ```sh
- make k8s-clean
+ ./helper.sh k8s-clean
 ```
 
 #### Individual Steps
@@ -214,7 +215,7 @@ Tip: Use helper script to run all cleanup steps with 1 command.
 To deploy as a local docker container you can use the helper script provided by running the below command in the project root directory
 
 ```
- make run
+ ./helper.sh run
  ```
 
 The script will do the following: 
@@ -229,7 +230,7 @@ Access the application on [http://localhost:8080](http://localhost:8080)
 You can clean up the local docker container by running 
 
 ```
-make clean
+./helper.sh clean
 ```
 
 ###  1. <u> Running locally in debug mode </u>
@@ -242,7 +243,7 @@ make clean
 To run the app locally in debug mode you can use the helper script provided by running the below command in the project root directory
 
 ```sh
- make debug
+ ./helper.sh debug
  ```
 
 The script will do the following: 
