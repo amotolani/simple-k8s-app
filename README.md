@@ -1,4 +1,4 @@
-# Smile Interview Submission
+# Submission
 
 
 ### API SPECIFICATION
