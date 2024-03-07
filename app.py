@@ -16,8 +16,6 @@ def get_root():
     body = json.dumps({
         "message": "Hello Smile" 
     })
-    remote_addr = request.remote_addr
-    app.logger.info(f"requests from {remote_addr}")
     return body, 200
 
 
@@ -38,7 +36,6 @@ def init_app():
     Initializes and returns a flask app
     """
 
-    # logging.info("Application Started ...")
     return app
 
 
