@@ -165,8 +165,11 @@ By default the script will use `IMAGE_TAG=1.0.0` , to use a different tag run  `
     # set kube context
     aws eks update-kubeconfig --region $TF_VAR_aws_region --name main --alias main 
 
-    # apply manifests
-    kubectl apply -f k8s/      
+    # apply namespace manifests
+    kubectl apply -f k8s/namespace.yaml     
+
+    # apply other manifests
+    kubectl apply -f k8s/   
     
     ```
 
