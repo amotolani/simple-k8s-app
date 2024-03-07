@@ -1,7 +1,8 @@
 #!flask/bin/python
 import json
+import logging
 
-from flask import Flask
+from flask import Flask, request
 
 # Main flask application
 app = Flask(__name__)
@@ -16,6 +17,8 @@ def get_root():
     body = json.dumps({
         "message": "Hello Smile" 
     })
+    remote_addr = request.remote_addr
+    app.logger.info(f"requests from {remote_addr}")
     return body, 200
 
 
