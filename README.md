@@ -236,7 +236,8 @@ You can clean up the local docker container by running
 ###  1. <u> Running locally in debug mode </u>
 
  ##### Requirements
-* `Python3`
+* `python3`
+* `python3-pip`
 *  Port (8080)
 
 
