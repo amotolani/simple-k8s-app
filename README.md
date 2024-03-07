@@ -65,10 +65,11 @@ The App is packaged as a docker image and can be deployed on kubernetes. The bas
 *NOTE*: Terraform state is stored locally !! 
 
  ##### Requirements
-  * `Docker` with [Compose](https://docs.docker.com/compose/)
-  * `Terraform`
-  * `AWS cli`
-  * `yq`
+  * `Docker >= 1.24` with [Compose](https://docs.docker.com/compose/)
+  * `Terraform >= 1.2.3`
+  * `AWS cli >= 2.13.11 `
+  * `yq >= 4.40.5`
+  * `kubectl >= 1.28.2`
 
 **Tip**: Use the helper script to run all deployment steps with 1 command. You must first set environment variables in step 1.
 

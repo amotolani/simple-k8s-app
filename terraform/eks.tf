@@ -13,28 +13,28 @@ locals {
 data "aws_iam_policy_document" "ssm" {
 
   statement {
-    sid = "EnableAccessViaSSMSessionManager"
+    sid    = "EnableAccessViaSSMSessionManager"
     effect = "Allow"
     actions = [
-        "ssmmessages:OpenDataChannel",
-        "ssmmessages:OpenControlChannel",
-        "ssmmessages:CreateDataChannel",
-        "ssmmessages:CreateControlChannel",
-        "ssm:UpdateInstanceInformation"
+      "ssmmessages:OpenDataChannel",
+      "ssmmessages:OpenControlChannel",
+      "ssmmessages:CreateDataChannel",
+      "ssmmessages:CreateControlChannel",
+      "ssm:UpdateInstanceInformation"
     ]
     resources = ["*"]
   }
   statement {
-    sid = "EnableSSMRunCommand"
+    sid    = "EnableSSMRunCommand"
     effect = "Allow"
     actions = [
-        "ssm:UpdateInstanceInformation",
-        "ec2messages:SendReply",
-        "ec2messages:GetMessages",
-        "ec2messages:GetEndpoint",
-        "ec2messages:FailMessage",
-        "ec2messages:DeleteMessage",
-        "ec2messages:AcknowledgeMessage"
+      "ssm:UpdateInstanceInformation",
+      "ec2messages:SendReply",
+      "ec2messages:GetMessages",
+      "ec2messages:GetEndpoint",
+      "ec2messages:FailMessage",
+      "ec2messages:DeleteMessage",
+      "ec2messages:AcknowledgeMessage"
     ]
     resources = ["*"]
   }
@@ -42,7 +42,7 @@ data "aws_iam_policy_document" "ssm" {
 
 resource "aws_iam_policy" "ssm" {
   policy = data.aws_iam_policy_document.ssm.json
-  name = "SSMManagedNode"
+  name   = "SSMManagedNode"
 }
 
 module "eks" {
@@ -78,9 +78,9 @@ module "eks" {
 
   enable_cluster_creator_admin_permissions = true
 
-# https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/docs/faq.md#i-received-an-error-expect-exactly-one-securitygroup-tagged-with-kubernetesioclustername-
+  # https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/docs/faq.md#i-received-an-error-expect-exactly-one-securitygroup-tagged-with-kubernetesioclustername-
   node_security_group_tags = {
-    "kubernetes.io/cluster/${local.cluster_name}" = null 
+    "kubernetes.io/cluster/${local.cluster_name}" = null
   }
 
 
@@ -91,8 +91,8 @@ module "eks" {
 
     attach_cluster_primary_security_group = true
     iam_role_additional_policies = {
-      "SSMManagedNode": aws_iam_policy.ssm.arn
-  }
+      "SSMManagedNode" : aws_iam_policy.ssm.arn
+    }
 
     vpc_security_group_ids = []
 

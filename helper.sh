@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Check if required environment variables are set
 check_env() {
@@ -42,8 +43,11 @@ deploy_k8s() {
     yq e -i '.spec.template.spec.containers[0].image="'$IMAGE'"' k8s/deployment.yaml
     aws eks update-kubeconfig --region "$TF_VAR_aws_region" --name main --alias main
     kubectl apply -f k8s/namespace.yaml && sleep 3
-    kubectl apply -f k8s/
-    # rm .tmp_ecr
+    kubectl apply -f k8s/ && sleep 10
+    LB_DNS=$(kubectl get service/simple-app -n prod -o jsonpath="{.status.loadBalancer.ingress[0].hostname}")
+
+    echo "Launch App at: http://${LB_DNS}:8080"
+
 }
 
 # Cleanup Kubernetes resources

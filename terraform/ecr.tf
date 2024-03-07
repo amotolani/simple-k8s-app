@@ -4,7 +4,7 @@ module "ecr" {
   version = "1.6.0"
 
   repository_name = var.application_name
-  
+
 
   repository_lifecycle_policy = jsonencode({
     rules = [
