@@ -1,4 +1,4 @@
-# Submission
+
 
 
 ### API SPECIFICATION
