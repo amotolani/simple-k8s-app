@@ -1,6 +1,5 @@
 #!flask/bin/python
 import json
-import logging
 
 from flask import Flask, request
 
